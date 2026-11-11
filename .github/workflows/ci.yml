@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # a missing scientific dependency must FAIL the tests, never skip them
+      CATKIT_REQUIRE_SCIENTIFIC_DEPS: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"          # the only version CATkit v0.1 is validated on
+          cache: pip
+
+      - name: Install (validated dependency pins)
+        run: |
+          python -m pip install --upgrade pip build
+          python -m pip install -e ".[dev]" -c constraints/py311-research.txt
+          python -m pip check
+
+      - name: Tests (public, self-contained)
+        run: python -m pytest -rs -p no:cacheprovider 2>&1 | tee pytest.log
+
+      - name: Only the documented opt-in skips are allowed
+        # Tests that need private frozen reference code or a real ND2 file skip with a fixed reason
+        # (they are run on the maintainer's workstation before a release). Any other skip is a failure.
+        run: |
+          if grep '^SKIPPED' pytest.log | grep -v -e 'CATKIT_RESEARCH_SRC not set' -e 'CATKIT_REAL_ND2'; then
+            echo "unexpected skipped tests" >&2; exit 1
+          fi
+
+      - name: Build and smoke-test the distributions
+        run: |
+          python -m build
+          python -m venv "$RUNNER_TEMP/clean"
+          "$RUNNER_TEMP/clean/bin/python" -m pip install dist/*.whl -c constraints/py311-research.txt
+          "$RUNNER_TEMP/clean/bin/catkit" --version
+          "$RUNNER_TEMP/clean/bin/catkit" run --help

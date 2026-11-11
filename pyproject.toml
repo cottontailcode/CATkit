@@ -1,0 +1,59 @@
+# Build configuration and project metadata for CATkit.
+# Spec: https://packaging.python.org/en/latest/specifications/pyproject-toml/
+
+[build-system]
+# The build backend turns this source tree into an installable package.
+requires = ["setuptools>=77"]      # >=77: SPDX `license` expression and `license-files` (PEP 639)
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "catkit-microscopy"          # distribution name used by pip; the import name is `catkit`
+dynamic = ["version"]               # read from src/catkit/__init__.py (single source of truth)
+description = "Cell Atlas Toolkit: reproducible analysis of cell-resolved 3D fluorescence microscopy (v0.1: single-FOV ND2 workflow)."
+readme = "README.md"
+license = "GPL-3.0-only"            # SPDX identifier; full text in LICENSE
+license-files = ["LICENSE"]
+authors = [{ name = "Tiantian Shang" }]
+requires-python = ">=3.11,<3.12"    # only Python 3.11 is verified
+dependencies = [                    # validated stack; exact pins live in constraints/py311-research.txt
+    "numpy>=2.4,<3",
+    "scipy>=1.17,<2",
+    "big-fish==0.6.2",
+    "scikit-image>=0.26,<0.27",    # segmentation (M2.2-A); exact pin lives in constraints/py311-research.txt
+    "nd2==0.12.0",                # ND2 reader (M2.2-D); constraint file holds the full closure
+    "matplotlib>=3.11,<4",        # QC overlays (already required by big-fish); exact pin in constraints
+]
+keywords = ["microscopy", "fluorescence", "3D", "spot detection", "localization", "nd2", "cell segmentation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    # PyPI rejects any upload carrying this classifier: a guard against accidental publication.
+    # Remove it only when a PyPI release is actually decided (the licence itself is settled: GPL-3.0-only).
+    "Private :: Do Not Upload",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]            # public tests; tests marked `research` / `real_nd2` are opt-in and skip with a fixed reason
+
+[project.scripts]
+# Creates a `catkit` command that calls catkit.cli.main().
+catkit = "catkit.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "catkit.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+# record_property (E-layer bit-identity statistics) is only written to JUnit XML with the xunit1 family
+junit_family = "xunit1"
+markers = [
+    "research: uses private frozen references; opt-in via CATKIT_RESEARCH_SRC (skips with reason otherwise)",
+    "real_nd2: reads one user-authorised real ND2 file (CATKIT_REAL_ND2); opt-in, skips with a fixed reason otherwise",
+    "deps: scientific dependency checks; skip if absent, FAIL when CATKIT_REQUIRE_SCIENTIFIC_DEPS=1",
+]

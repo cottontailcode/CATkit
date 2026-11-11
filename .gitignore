@@ -1,0 +1,56 @@
+# --- Python environments ---
+.venv/
+.venv-*/
+venv/
+env/
+.python-version
+
+# --- Python bytecode and build artifacts ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+*.whl
+
+# --- Test and coverage caches ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# --- Editors and OS files ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+.ipynb_checkpoints/
+
+# --- Analysis outputs (generated; never committed) ---
+outputs/
+results/
+catkit_real_runs/
+spots.csv
+candidates.csv
+cells.csv
+run_metadata.json
+qc_overlay_*.png
+*.log
+
+# --- Microscopy images and large data (never committed) ---
+*.nd2
+*.czi
+*.lif
+*.tif
+*.tiff
+*.zarr/
+*.h5
+*.hdf5
+*.npy
+*.npz
+
+# --- Private material and backups ---
+private/
+*.bundle
+.env
+.env.*

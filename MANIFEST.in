@@ -1,0 +1,7 @@
+# Source distribution contents (the wheel contains only the `catkit` package).
+include LICENSE README.md CHANGELOG.md pyproject.toml
+include constraints/*.txt
+recursive-include docs *.md
+recursive-include tests *.py
+recursive-include tools *.py
+global-exclude __pycache__ *.py[cod] .DS_Store
